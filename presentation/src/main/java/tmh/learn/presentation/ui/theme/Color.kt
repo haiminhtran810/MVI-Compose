@@ -1,4 +1,4 @@
-package tmh.learn.mvi_compose.ui.theme
+package tmh.learn.presentation.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
