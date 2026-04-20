@@ -11,6 +11,9 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+}
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
@@ -19,8 +22,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "MVI-Compose"
+rootProject.name = "WeatherCompose"
 include(":app")
-include(":data")
 include(":domain")
-include(":presentation")
+include(":data")
