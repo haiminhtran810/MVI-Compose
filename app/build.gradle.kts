@@ -41,6 +41,8 @@ android {
 }
 
 dependencies {
+    implementation(project(":domain"))
+    implementation(project(":data"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
@@ -72,6 +74,8 @@ dependencies {
     implementation(libs.moshi.kotlin)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.material)
+    implementation(libs.koin.android)
+    implementation(libs.koin.androidx.compose)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.androidx.core)
