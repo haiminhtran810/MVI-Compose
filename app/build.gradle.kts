@@ -60,7 +60,7 @@ dependencies {
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.coil.compose)
     implementation(libs.retrofit)
-    implementation(libs.converter.moshi)
+    implementation(libs.converter.gson)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.accompanist.permissions)
@@ -71,7 +71,6 @@ dependencies {
     implementation(libs.androidx.camera.core)
     implementation(libs.logging.interceptor)
     implementation(libs.okhttp)
-    implementation(libs.moshi.kotlin)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.material)
     implementation(libs.koin.android)
@@ -88,5 +87,4 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     "ksp"(libs.androidx.room.compiler)
-    "ksp"(libs.moshi.kotlin.codegen)
 }
