@@ -7,7 +7,6 @@ val localProps = Properties().also { props ->
 
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.google.devtools.ksp)
 }
 
 android {
@@ -38,12 +37,10 @@ dependencies {
     implementation(project(":domain"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.retrofit)
-    implementation(libs.converter.moshi)
+    implementation(libs.converter.gson)
     implementation(libs.okhttp)
     implementation(libs.logging.interceptor)
-    implementation(libs.moshi.kotlin)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.play.services.location)
     implementation(libs.koin.android)
-    ksp(libs.moshi.kotlin.codegen)
 }

@@ -63,12 +63,10 @@ kotlin {
 dependencies {
     implementation(project(":domain"))
     implementation(libs.retrofit)
-    implementation(libs.converter.moshi)
+    implementation(libs.converter.gson)
     implementation(libs.okhttp)
     implementation(libs.logging.interceptor)
-    implementation(libs.moshi.kotlin)
     implementation(libs.kotlinx.coroutines.core)
-    ksp(libs.moshi.kotlin.codegen)
 }
 INNER_EOF
 
@@ -76,69 +74,59 @@ INNER_EOF
 cat << 'INNER_EOF' > data/src/main/java/tmh/learn/weathercompose/data/remote/dto/WeatherResponseDto.kt
 package tmh.learn.weathercompose.data.remote.dto
 
-import com.squareup.moshi.Json
-import com.squareup.moshi.JsonClass
+import com.google.gson.annotations.SerializedName
 
-@JsonClass(generateAdapter = true)
 data class WeatherResponseDto(
-    @Json(name = "weather") val weather: List<WeatherDto>,
-    @Json(name = "main") val main: MainDto,
-    @Json(name = "wind") val wind: WindDto
+    @SerializedName("weather") val weather: List<WeatherDto>,
+    @SerializedName("main") val main: MainDto,
+    @SerializedName("wind") val wind: WindDto
 )
 
-@JsonClass(generateAdapter = true)
 data class WeatherDto(
-    @Json(name = "id") val id: Int,
-    @Json(name = "main") val main: String,
-    @Json(name = "description") val description: String,
-    @Json(name = "icon") val icon: String
+    @SerializedName("id") val id: Int,
+    @SerializedName("main") val main: String,
+    @SerializedName("description") val description: String,
+    @SerializedName("icon") val icon: String
 )
 
-@JsonClass(generateAdapter = true)
 data class MainDto(
-    @Json(name = "temp") val temp: Double,
-    @Json(name = "feels_like") val feelsLike: Double,
-    @Json(name = "humidity") val humidity: Int
+    @SerializedName("temp") val temp: Double,
+    @SerializedName("feels_like") val feelsLike: Double,
+    @SerializedName("humidity") val humidity: Int
 )
 
-@JsonClass(generateAdapter = true)
 data class WindDto(
-    @Json(name = "speed") val speed: Double
+    @SerializedName("speed") val speed: Double
 )
 INNER_EOF
 
 cat << 'INNER_EOF' > data/src/main/java/tmh/learn/weathercompose/data/remote/dto/ForecastResponseDto.kt
 package tmh.learn.weathercompose.data.remote.dto
 
-import com.squareup.moshi.Json
-import com.squareup.moshi.JsonClass
+import com.google.gson.annotations.SerializedName
 
-@JsonClass(generateAdapter = true)
 data class ForecastResponseDto(
-    @Json(name = "list") val list: List<ForecastItemDto>
+    @SerializedName("list") val list: List<ForecastItemDto>
 )
 
-@JsonClass(generateAdapter = true)
 data class ForecastItemDto(
-    @Json(name = "dt") val dt: Long,
-    @Json(name = "main") val main: MainDto,
-    @Json(name = "weather") val weather: List<WeatherDto>,
-    @Json(name = "wind") val wind: WindDto
+    @SerializedName("dt") val dt: Long,
+    @SerializedName("main") val main: MainDto,
+    @SerializedName("weather") val weather: List<WeatherDto>,
+    @SerializedName("wind") val wind: WindDto
 )
 INNER_EOF
 
 cat << 'INNER_EOF' > data/src/main/java/tmh/learn/weathercompose/data/remote/dto/GeocodingResponseDto.kt
 package tmh.learn.weathercompose.data.remote.dto
 
-import com.squareup.moshi.Json
-import com.squareup.moshi.JsonClass
+import com.google.gson.annotations.SerializedName
 
-@JsonClass(generateAdapter = true)
 data class GeocodingResponseDto(
-    @Json(name = "name") val name: String,
-    @Json(name = "lat") val lat: Double,
-    @Json(name = "lon") val lon: Double,
-    @Json(name = "country") val country: String?
+    @SerializedName("name") val name: String,
+    @SerializedName("lat") val lat: Double,
+    @SerializedName("lon") val lon: Double,
+    @SerializedName("country") val country: String?
 )
 INNER_EOF
 

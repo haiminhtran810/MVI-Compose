@@ -1,13 +1,12 @@
 package tmh.learn.weathercompose.data.di
 
 import com.google.android.gms.location.LocationServices
-import com.squareup.moshi.Moshi
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 import retrofit2.Retrofit
-import retrofit2.converter.moshi.MoshiConverterFactory
+import retrofit2.converter.gson.GsonConverterFactory
 import tmh.learn.weathercompose.data.BuildConfig
 import tmh.learn.weathercompose.data.remote.OpenWeatherApi
 import tmh.learn.weathercompose.data.repository.LocationRepositoryImpl
@@ -18,10 +17,6 @@ import tmh.learn.weathercompose.domain.repository.WeatherRepository
 private const val OPEN_WEATHER_BASE_URL = "https://api.openweathermap.org/"
 
 val dataModule = module {
-    single {
-        Moshi.Builder().build()
-    }
-
     single {
         HttpLoggingInterceptor().apply {
             level = if (BuildConfig.DEBUG) {
@@ -41,7 +36,7 @@ val dataModule = module {
     single {
         Retrofit.Builder()
             .baseUrl(OPEN_WEATHER_BASE_URL)
-            .addConverterFactory(MoshiConverterFactory.create(get()))
+            .addConverterFactory(GsonConverterFactory.create())
             .client(get())
             .build()
             .create(OpenWeatherApi::class.java)
