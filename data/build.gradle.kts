@@ -17,7 +17,7 @@ android {
     defaultConfig {
         minSdk = 24
         val apiKey = localProps.getProperty("OPENWEATHER_API_KEY") ?: "MISSING_API_KEY"
-        buildConfigField("String", "OPENWEATHER_API_KEY", $$"\"$apiKey\"")
+        buildConfigField("String", "OPENWEATHER_API_KEY", $"\"$apiKey\"")
     }
 
     buildFeatures {
@@ -36,11 +36,14 @@ kotlin {
 
 dependencies {
     implementation(project(":domain"))
+    implementation(libs.androidx.core.ktx)
     implementation(libs.retrofit)
     implementation(libs.converter.moshi)
     implementation(libs.okhttp)
     implementation(libs.logging.interceptor)
     implementation(libs.moshi.kotlin)
     implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.play.services.location)
+    implementation(libs.koin.android)
     ksp(libs.moshi.kotlin.codegen)
 }
