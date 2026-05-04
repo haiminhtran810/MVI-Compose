@@ -1,13 +1,9 @@
-package tmh.learn.weathercompose
+package tmh.learn.weathercompose.ui.screen.main
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.os.Bundle
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -65,20 +61,8 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            WeatherComposeTheme {
-                WeatherRoute()
-            }
-        }
-    }
-}
-
 @Composable
-private fun WeatherRoute(
+fun WeatherRoute(
     viewModel: WeatherViewModel = koinViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
