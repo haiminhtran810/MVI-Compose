@@ -55,8 +55,6 @@ import tmh.learn.weathercompose.domain.entity.HourlyForecast
 import tmh.learn.weathercompose.domain.entity.Location
 import tmh.learn.weathercompose.domain.entity.Weather
 import tmh.learn.weathercompose.ui.theme.WeatherComposeTheme
-import tmh.learn.weathercompose.ui.WeatherUiState
-import tmh.learn.weathercompose.ui.WeatherViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale

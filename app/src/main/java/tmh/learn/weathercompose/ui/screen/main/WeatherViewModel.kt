@@ -1,4 +1,4 @@
-package tmh.learn.weathercompose.ui
+package tmh.learn.weathercompose.ui.screen.main
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -8,9 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import tmh.learn.weathercompose.domain.entity.Forecast
 import tmh.learn.weathercompose.domain.entity.Location
-import tmh.learn.weathercompose.domain.entity.Weather
 import tmh.learn.weathercompose.domain.usecase.GetCurrentWeatherUseCase
 import tmh.learn.weathercompose.domain.usecase.GetDeviceLocationUseCase
 import tmh.learn.weathercompose.domain.usecase.GetForecastUseCase
@@ -19,16 +17,6 @@ import tmh.learn.weathercompose.domain.usecase.RemoveLocationUseCase
 import tmh.learn.weathercompose.domain.usecase.SaveLocationUseCase
 import tmh.learn.weathercompose.domain.usecase.SearchLocationUseCase
 
-data class WeatherUiState(
-    val isLoading: Boolean = false,
-    val requestLocationPermission: Boolean = false,
-    val currentLocation: Location? = null,
-    val weather: Weather? = null,
-    val forecast: Forecast? = null,
-    val searchResults: List<Location> = emptyList(),
-    val savedLocations: List<Location> = emptyList(),
-    val errorMessage: String? = null
-)
 
 class WeatherViewModel(
     private val getCurrentWeatherUseCase: GetCurrentWeatherUseCase,
