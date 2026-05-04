@@ -26,7 +26,7 @@ import tmh.learn.weathercompose.domain.usecase.GetSavedLocationsUseCase
 import tmh.learn.weathercompose.domain.usecase.RemoveLocationUseCase
 import tmh.learn.weathercompose.domain.usecase.SaveLocationUseCase
 import tmh.learn.weathercompose.domain.usecase.SearchLocationUseCase
-import tmh.learn.weathercompose.ui.WeatherViewModel
+import tmh.learn.weathercompose.ui.screen.main.WeatherViewModel
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class WeatherViewModelTest {

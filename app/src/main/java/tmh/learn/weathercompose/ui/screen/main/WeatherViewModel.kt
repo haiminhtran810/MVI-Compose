@@ -1,16 +1,16 @@
-package tmh.learn.weathercompose.ui
+package tmh.learn.weathercompose.ui.screen.main
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.async
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import tmh.learn.weathercompose.domain.entity.Forecast
 import tmh.learn.weathercompose.domain.entity.Location
-import tmh.learn.weathercompose.domain.entity.Weather
 import tmh.learn.weathercompose.domain.usecase.GetCurrentWeatherUseCase
 import tmh.learn.weathercompose.domain.usecase.GetDeviceLocationUseCase
 import tmh.learn.weathercompose.domain.usecase.GetForecastUseCase
@@ -18,17 +18,6 @@ import tmh.learn.weathercompose.domain.usecase.GetSavedLocationsUseCase
 import tmh.learn.weathercompose.domain.usecase.RemoveLocationUseCase
 import tmh.learn.weathercompose.domain.usecase.SaveLocationUseCase
 import tmh.learn.weathercompose.domain.usecase.SearchLocationUseCase
-
-data class WeatherUiState(
-    val isLoading: Boolean = false,
-    val requestLocationPermission: Boolean = false,
-    val currentLocation: Location? = null,
-    val weather: Weather? = null,
-    val forecast: Forecast? = null,
-    val searchResults: List<Location> = emptyList(),
-    val savedLocations: List<Location> = emptyList(),
-    val errorMessage: String? = null
-)
 
 class WeatherViewModel(
     private val getCurrentWeatherUseCase: GetCurrentWeatherUseCase,
@@ -40,65 +29,76 @@ class WeatherViewModel(
     private val removeLocationUseCase: RemoveLocationUseCase
 ) : ViewModel() {
 
+    /**
+     * The single source of truth for the View.
+     * Represents the current visual state of the weather screen.
+     */
     private val _uiState = MutableStateFlow(WeatherUiState())
     val uiState: StateFlow<WeatherUiState> = _uiState.asStateFlow()
+
+    /**
+     * Channel to send single-shot side effects to the View (e.g., show error, request permission).
+     * Using a Channel ensures effects are handled exactly once and aren't re-triggered on recomposition.
+     */
+    private val _effect = Channel<WeatherEffect>()
+    val effect = _effect.receiveAsFlow()
 
     init {
         refreshSavedLocations()
     }
 
-    fun onAutoDetectLocationClicked(hasLocationPermission: Boolean) {
+    /**
+     * The only entry point for the View to send user intents to the ViewModel.
+     * Maps incoming intents to their specific business logic handlers.
+     */
+    fun processIntent(intent: WeatherIntent) {
+        when (intent) {
+            is WeatherIntent.SearchQueryChanged -> onSearchQueryChanged(intent.query)
+            is WeatherIntent.LocationSelected -> onLocationSelected(intent.location)
+            is WeatherIntent.RemoveSavedLocation -> onRemoveSavedLocation(intent.location)
+            is WeatherIntent.AutoDetectLocationClicked -> onAutoDetectLocationClicked(intent.hasLocationPermission)
+            is WeatherIntent.LocationPermissionResult -> onLocationPermissionResult(intent.isGranted)
+        }
+    }
+
+    private fun onAutoDetectLocationClicked(hasLocationPermission: Boolean) {
         if (!hasLocationPermission) {
-            _uiState.update {
-                it.copy(
-                    requestLocationPermission = true,
-                    errorMessage = null
-                )
+            viewModelScope.launch {
+                _effect.send(WeatherEffect.RequestLocationPermission)
             }
             return
         }
         loadDeviceLocationAndWeather()
     }
 
-    fun onLocationPermissionResult(isGranted: Boolean) {
+    private fun onLocationPermissionResult(isGranted: Boolean) {
         if (!isGranted) {
-            _uiState.update {
-                it.copy(
-                    requestLocationPermission = false,
-                    errorMessage = "Location permission is required for auto-detect."
-                )
+            viewModelScope.launch {
+                _effect.send(WeatherEffect.ShowError("Location permission is required for auto-detect."))
             }
             return
         }
         loadDeviceLocationAndWeather()
     }
 
-    fun onPermissionRequestConsumed() {
-        _uiState.update { it.copy(requestLocationPermission = false) }
-    }
-
-    fun onSearchQueryChanged(query: String) {
+    private fun onSearchQueryChanged(query: String) {
         if (query.length < 2) {
-            _uiState.update { it.copy(searchResults = emptyList(), errorMessage = null) }
+            _uiState.update { it.copy(searchResults = emptyList()) }
             return
         }
         viewModelScope.launch {
             searchLocationUseCase(query)
                 .onSuccess { locations ->
-                    _uiState.update { it.copy(searchResults = locations, errorMessage = null) }
+                    _uiState.update { it.copy(searchResults = locations) }
                 }
                 .onFailure { error ->
-                    _uiState.update {
-                        it.copy(
-                            searchResults = emptyList(),
-                            errorMessage = error.message ?: "Failed to search locations."
-                        )
-                    }
+                    _uiState.update { it.copy(searchResults = emptyList()) }
+                    _effect.send(WeatherEffect.ShowError(error.message ?: "Failed to search locations."))
                 }
         }
     }
 
-    fun onLocationSelected(location: Location) {
+    private fun onLocationSelected(location: Location) {
         loadWeatherForLocation(location)
         viewModelScope.launch {
             saveLocationUseCase(location)
@@ -106,7 +106,7 @@ class WeatherViewModel(
         }
     }
 
-    fun onRemoveSavedLocation(location: Location) {
+    private fun onRemoveSavedLocation(location: Location) {
         viewModelScope.launch {
             removeLocationUseCase(location)
             refreshSavedLocations()
@@ -117,9 +117,7 @@ class WeatherViewModel(
         viewModelScope.launch {
             _uiState.update {
                 it.copy(
-                    isLoading = true,
-                    requestLocationPermission = false,
-                    errorMessage = null
+                    isLoading = true
                 )
             }
             getDeviceLocationUseCase()
@@ -129,17 +127,17 @@ class WeatherViewModel(
                 .onFailure { error ->
                     _uiState.update {
                         it.copy(
-                            isLoading = false,
-                            errorMessage = error.message ?: "Unable to get device location."
+                            isLoading = false
                         )
                     }
+                    _effect.send(WeatherEffect.ShowError(error.message ?: "Unable to get device location."))
                 }
         }
     }
 
     private fun loadWeatherForLocation(location: Location) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, currentLocation = location, errorMessage = null) }
+            _uiState.update { it.copy(isLoading = true, currentLocation = location) }
 
             val weatherDeferred = async {
                 getCurrentWeatherUseCase(location.latitude, location.longitude)
@@ -159,9 +157,12 @@ class WeatherViewModel(
                 it.copy(
                     isLoading = false,
                     weather = weather,
-                    forecast = forecast,
-                    errorMessage = error?.message
+                    forecast = forecast
                 )
+            }
+
+            error?.message?.let {
+                _effect.send(WeatherEffect.ShowError(it))
             }
         }
     }

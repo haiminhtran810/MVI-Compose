@@ -21,11 +21,12 @@ An Android library module responsible for data retrieval, storage, and external 
 ### 3. `:app` (Presentation Layer)
 The main Android application module containing the UI and user interactions.
 * **UI:** Fully built with **Jetpack Compose**.
-* **MVI Implementation:**
-  * **Model (UI State):** An immutable data class representing the single source of truth for the screen at any given time.
-  * **View (Compose):** Renders the UI reacting to state emissions.
-  * **Intent (Action/Event):** Represents user interactions (e.g., button clicks, text input) or system events that are dispatched to the ViewModel.
-* **ViewModels:** Consume intents, execute business logic (via Use Cases from the `:domain` layer), and reduce the results into a new UI State.
+* **Strict MVI Implementation:**
+  * **Model (`UiState`):** An immutable data class representing the single source of truth for the screen at any given time (e.g., `WeatherUiState`). It exclusively contains renderable data, completely free of single-shot event flags.
+  * **View (Compose):** Renders the UI by observing the `UiState` and dispatches user actions back to the ViewModel as `Intent`s.
+  * **Intent (`WeatherIntent`):** Represents explicit user interactions (e.g., button clicks, text inputs). The ViewModel exposes a single, unified entry point (`processIntent(intent)`) to accept and handle all of these actions.
+  * **Effect (`WeatherEffect`):** Single-shot side effects (such as showing Snackbars, navigating, or requesting system permissions) are handled efficiently via Kotlin `Channel`s. They are cleanly decoupled from the persistent `UiState`.
+* **ViewModels:** Expose a state flow, process a unified stream of `Intent`s, execute business logic (via Use Cases from the `:domain` layer), dispatch single-shot `Effect`s, and mutate the persistent `UiState`.
 
 ## 🛠 Tech Stack & Libraries
 
