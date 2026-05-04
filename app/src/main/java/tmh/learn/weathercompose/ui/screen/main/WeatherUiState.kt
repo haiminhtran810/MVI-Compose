@@ -6,11 +6,9 @@ import tmh.learn.weathercompose.domain.entity.Weather
 
 data class WeatherUiState(
     val isLoading: Boolean = false,
-    val requestLocationPermission: Boolean = false,
     val currentLocation: Location? = null,
     val weather: Weather? = null,
     val forecast: Forecast? = null,
     val searchResults: List<Location> = emptyList(),
-    val savedLocations: List<Location> = emptyList(),
-    val errorMessage: String? = null
+    val savedLocations: List<Location> = emptyList()
 )

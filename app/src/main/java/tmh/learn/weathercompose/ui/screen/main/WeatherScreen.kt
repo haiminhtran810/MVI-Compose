@@ -26,6 +26,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -59,27 +61,41 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+/**
+ * Stateful entry point for the Weather screen.
+ * It connects the [WeatherViewModel] to the stateless [WeatherContent].
+ * Observes the ViewModel's state and effects, and binds user actions to Intents.
+ */
 @Composable
 fun WeatherRoute(
     viewModel: WeatherViewModel = koinViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { granted ->
-        viewModel.onLocationPermissionResult(granted)
+        viewModel.processIntent(WeatherIntent.LocationPermissionResult(granted))
     }
 
-    LaunchedEffect(state.requestLocationPermission) {
-        if (state.requestLocationPermission) {
-            permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-            viewModel.onPermissionRequestConsumed()
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                is WeatherEffect.RequestLocationPermission -> {
+                    permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                }
+                is WeatherEffect.ShowError -> {
+                    snackbarHostState.showSnackbar(effect.message)
+                }
+            }
         }
     }
 
     WeatherContent(
         state = state,
+        snackbarHostState = snackbarHostState,
         onAutoDetectLocation = {
             val hasPermission = ContextCompat.checkSelfPermission(
                 context,
@@ -88,17 +104,23 @@ fun WeatherRoute(
                 context,
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED
-            viewModel.onAutoDetectLocationClicked(hasPermission)
+            viewModel.processIntent(WeatherIntent.AutoDetectLocationClicked(hasPermission))
         },
-        onSearchQueryChanged = viewModel::onSearchQueryChanged,
-        onSelectLocation = viewModel::onLocationSelected,
-        onRemoveSavedLocation = viewModel::onRemoveSavedLocation
+        onSearchQueryChanged = { viewModel.processIntent(WeatherIntent.SearchQueryChanged(it)) },
+        onSelectLocation = { viewModel.processIntent(WeatherIntent.LocationSelected(it)) },
+        onRemoveSavedLocation = { viewModel.processIntent(WeatherIntent.RemoveSavedLocation(it)) }
     )
 }
 
+/**
+ * Stateless UI component for the Weather screen.
+ * It purely renders the [WeatherUiState] and propagates user actions up via callbacks.
+ * This makes the component highly testable and previewable.
+ */
 @Composable
 private fun WeatherContent(
     state: WeatherUiState,
+    snackbarHostState: SnackbarHostState,
     onAutoDetectLocation: () -> Unit,
     onSearchQueryChanged: (String) -> Unit,
     onSelectLocation: (Location) -> Unit,
@@ -106,7 +128,10 @@ private fun WeatherContent(
 ) {
     var searchQuery by remember { mutableStateOf("") }
 
-    Scaffold(modifier = Modifier.fillMaxSize()) { paddingValues ->
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+    ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -143,16 +168,6 @@ private fun WeatherContent(
                             modifier = Modifier.padding(start = 8.dp)
                         )
                     }
-                }
-            }
-
-            state.errorMessage?.let { error ->
-                item {
-                    Text(
-                        text = error,
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
                 }
             }
 
@@ -512,6 +527,7 @@ private fun WeatherContentPreview() {
                     Location("Bangkok", "TH", 13.75, 100.50)
                 )
             ),
+            snackbarHostState = remember { SnackbarHostState() },
             onAutoDetectLocation = {},
             onSearchQueryChanged = {},
             onSelectLocation = {},
