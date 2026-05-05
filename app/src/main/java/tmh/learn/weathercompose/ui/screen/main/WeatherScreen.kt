@@ -25,7 +25,6 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Scaffold
@@ -33,9 +32,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
@@ -50,12 +47,16 @@ import coil.compose.AsyncImage
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
+import androidx.compose.ui.res.stringResource
 import org.koin.androidx.compose.koinViewModel
+import tmh.learn.weathercompose.R
 import tmh.learn.weathercompose.domain.entity.DailyForecast
 import tmh.learn.weathercompose.domain.entity.Forecast
 import tmh.learn.weathercompose.domain.entity.HourlyForecast
 import tmh.learn.weathercompose.domain.entity.Location
 import tmh.learn.weathercompose.domain.entity.Weather
+import tmh.learn.weathercompose.ui.base.AppOutlinedTextField
+import tmh.learn.weathercompose.ui.base.AppText
 import tmh.learn.weathercompose.ui.theme.WeatherComposeTheme
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -86,6 +87,7 @@ fun WeatherRoute(
                 is WeatherEffect.RequestLocationPermission -> {
                     permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
                 }
+
                 is WeatherEffect.ShowError -> {
                     snackbarHostState.showSnackbar(effect.message)
                 }
@@ -126,8 +128,6 @@ private fun WeatherContent(
     onSelectLocation: (Location) -> Unit,
     onRemoveSavedLocation: (Location) -> Unit
 ) {
-    var searchQuery by remember { mutableStateOf("") }
-
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
@@ -147,25 +147,20 @@ private fun WeatherContent(
             }
 
             item {
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = {
-                        searchQuery = it
-                        onSearchQueryChanged(it)
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Search location") },
-                    singleLine = true
-                )
+                AppOutlinedTextField(
+                    title = stringResource(R.string.search_location)
+                ) { keySearch ->
+                    onSearchQueryChanged(keySearch)
+                }
             }
 
             if (state.isLoading) {
                 item {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         CircularProgressIndicator(modifier = Modifier.size(20.dp))
-                        Text(
-                            text = "Loading weather...",
-                            modifier = Modifier.padding(start = 8.dp)
+                        AppText(
+                            modifier = Modifier.padding(start = 8.dp),
+                            text = stringResource(R.string.loading_weather)
                         )
                     }
                 }
@@ -173,7 +168,7 @@ private fun WeatherContent(
 
             if (state.searchResults.isNotEmpty()) {
                 item {
-                    SectionTitle("Search results")
+                    SectionTitle(stringResource(R.string.search_results))
                 }
                 items(state.searchResults) { location ->
                     SearchLocationItem(location = location, onSelectLocation = onSelectLocation)
@@ -182,28 +177,28 @@ private fun WeatherContent(
 
             if (state.forecast?.hourly?.isNotEmpty() == true) {
                 item {
-                    SectionTitle("Hourly forecast")
+                    SectionTitle(stringResource(R.string.hourly_forecast))
                     HourlyForecastRow(state.forecast.hourly)
                 }
             }
 
             if (state.weather != null) {
                 item {
-                    SectionTitle("Weather details")
+                    SectionTitle(stringResource(R.string.weather_details))
                     WeatherHighlightsRow(state.weather)
                 }
             }
 
             if (state.forecast?.daily?.isNotEmpty() == true) {
                 item {
-                    SectionTitle("Next days")
+                    SectionTitle(stringResource(R.string.next_days))
                     DailyForecastSection(state.forecast.daily)
                 }
             }
 
             if (state.savedLocations.isNotEmpty()) {
                 item {
-                    SectionTitle("Saved locations")
+                    SectionTitle(stringResource(R.string.saved_locations))
                     SavedLocationsRow(
                         locations = state.savedLocations,
                         onSelectLocation = onSelectLocation,
@@ -352,7 +347,11 @@ private fun MetricCard(
             verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
             Text(text = title, style = MaterialTheme.typography.labelMedium)
-            Text(text = value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text(
+                text = value,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
             Text(text = subtitle, style = MaterialTheme.typography.bodySmall)
         }
     }
@@ -399,13 +398,19 @@ private fun HourlyForecastRow(hourly: List<HourlyForecast>) {
                     modifier = Modifier.padding(12.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(text = formatHour(hour.timeEpoch), style = MaterialTheme.typography.labelLarge)
+                    Text(
+                        text = formatHour(hour.timeEpoch),
+                        style = MaterialTheme.typography.labelLarge
+                    )
                     AsyncImage(
                         model = iconUrl(hour.iconId),
                         contentDescription = hour.description,
                         modifier = Modifier.size(36.dp)
                     )
-                    Text(text = "${hour.temperature.toInt()}°", style = MaterialTheme.typography.titleSmall)
+                    Text(
+                        text = "${hour.temperature.toInt()}°",
+                        style = MaterialTheme.typography.titleSmall
+                    )
                 }
             }
         }
@@ -432,7 +437,10 @@ private fun DailyForecastSection(daily: List<DailyForecast>) {
                         modifier = Modifier.size(30.dp)
                     )
                     Column(modifier = Modifier.padding(start = 8.dp)) {
-                        Text(text = formatDay(day.dateEpoch), style = MaterialTheme.typography.titleSmall)
+                        Text(
+                            text = formatDay(day.dateEpoch),
+                            style = MaterialTheme.typography.titleSmall
+                        )
                         Text(
                             text = day.description,
                             style = MaterialTheme.typography.bodySmall

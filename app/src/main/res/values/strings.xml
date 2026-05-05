@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">Nhoc Tax</string>
+    <string name="search_location">Search location</string>
+    <string name="loading_weather">Loading weather...</string>
+    <string name="next_days">Next days</string>
+    <string name="weather_details">Weather details</string>
+    <string name="hourly_forecast">Hourly forecast</string>
+    <string name="saved_locations">Saved locations</string>
+    <string name="search_results">Search results</string>
 </resources>
